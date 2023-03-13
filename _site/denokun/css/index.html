@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title></title>
+    <link rel="stylesheet" href="/denokun/style.css">
+  </head>
+  <body>
+    <div class="header" onclick="location.href = '.'">
+      
+    </div>
+      <p><a href="https://tailwindcss.com/">TailWind CSS</a>を使って見た目を調整する<br>
+<a href="https://tailwindcomponents.com/cheatsheet/">チートシート</a><br>
+ボタンやダイアログのスタイルは何度も使うので変数にする<br>
+ダイアログの外側をクリック(@click.outside)するとダイアログを閉じる
+いいねボタンはいいねすると色を反転する</p>
+<p><code>static/index.html</code></p>
+<pre><code class="language-html">&lt;!doctype html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;link href=&quot;https://unpkg.com/tailwindcss@2.2.7/dist/tailwind.css&quot; rel=&quot;stylesheet&quot;&gt;
+  &lt;/head&gt;
+
+  &lt;body class=&quot;bg-blue-200&quot;&gt;
+    &lt;div x-data=&quot;app&quot;&gt;
+      &lt;div class=&quot;bg-blue-400 text-center fixed top-0 w-full p-1&quot;&gt;
+        &lt;img src=&quot;logo.dio.svg&quot; class=&quot;inline&quot;&gt;
+        &lt;span x-text=&quot;userName + 'さん'&quot; x-show=&quot;logined&quot; class=&quot;text-white&quot;&gt;&lt;/span&gt;
+        &lt;button @click=&quot;openRegist()&quot; x-show=&quot;!logined&quot; :class=&quot;buttonStyle&quot;&gt;ユーザ登録&lt;/button&gt;
+        &lt;button @click=&quot;openLogin()&quot;  x-show=&quot;!logined&quot; :class=&quot;buttonStyle&quot;&gt;ログイン&lt;/button&gt;
+        &lt;button @click=&quot;logout()&quot;     x-show=&quot;logined&quot;  :class=&quot;buttonStyle&quot;&gt;ログアウト&lt;/button&gt;
+        &lt;button @click=&quot;openUpload()&quot; x-show=&quot;logined&quot;  :class=&quot;buttonStyle&quot;&gt;アップロード&lt;/button&gt;
+        &lt;button @click=&quot;changeType()&quot; x-text=&quot;sort&quot;     :class=&quot;buttonStyle&quot;&gt;&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;bg-white mx-auto w-2/3 mt-12 shadow-xl&quot;&gt;
+        &lt;template x-for=&quot;photo in timeline&quot;&gt;
+          &lt;div class=&quot;flex flex-col&quot;&gt;
+            &lt;div x-text=&quot;photo.id&quot; class=&quot;mx-auto&quot;&gt;&lt;/div&gt;
+            &lt;img :src=&quot;photo.url&quot; style=&quot;width: 360px&quot; class=&quot;mx-auto rounded&quot;&gt;
+            &lt;button x-text=&quot;photo.good + 'いいね'&quot; @click=&quot;good(photo)&quot;
+              :class=&quot;{
+                'bg-gray-500 text-white p-1 mx-auto mt-2 rounded': photo.mygood,
+                'bg-gray-300 p-1 mx-auto mt-2 rounded': !photo.mygood
+              }&quot;&gt;&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/template&gt;
+      &lt;/div&gt;
+
+      &lt;div x-show=&quot;showRegist&quot; :class=&quot;dialogBackStyle&quot; x-transition&gt;
+        &lt;div @click.outside=&quot;closeRegist()&quot; :class=&quot;dialogForeStyle&quot;&gt;
+          &lt;p&gt;ユーザ名: &lt;input x-model=&quot;registName&quot; type=&quot;text&quot; class=&quot;border border-black p-1 rounded&quot;&gt;&lt;/p&gt;
+          &lt;p&gt;パスワード: &lt;input x-model=&quot;registPass&quot; type=&quot;text&quot; autocomplete=&quot;off&quot; class=&quot;border border-black p-1 rounded&quot;&gt;&lt;/p&gt;
+          &lt;p&gt;&lt;button @click=&quot;regist()&quot; :class=&quot;buttonStyle&quot;&gt;登録&lt;/button&gt;&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div x-show=&quot;showLogin&quot; :class=&quot;dialogBackStyle&quot; x-transition&gt;
+        &lt;div @click.outside=&quot;closeLogin()&quot; :class=&quot;dialogForeStyle&quot;&gt;
+          &lt;p&gt;ユーザ名: &lt;input type=&quot;text&quot; x-model=&quot;loginName&quot; class=&quot;border border-black p-1 rounded&quot;&gt;&lt;/p&gt;
+          &lt;p&gt;パスワード: &lt;input type=&quot;text&quot; x-model=&quot;loginPass&quot; autocomplete=&quot;off&quot; class=&quot;border border-black p-1 rounded&quot;&gt;&lt;/p&gt;
+          &lt;p&gt;&lt;button @click=&quot;login()&quot; :class=&quot;buttonStyle&quot;&gt;ログイン&lt;/button&gt;&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div x-show=&quot;showUpload&quot; :class=&quot;dialogBackStyle&quot; x-transition&gt;
+        &lt;div @click.outside=&quot;closeUpload()&quot; :class=&quot;dialogForeStyle&quot;&gt;
+          &lt;p class=&quot;m-2&quot;&gt;&lt;img :src=&quot;preview&quot; style=&quot;width: 480px&quot; class=&quot;mx-auto rounded&quot;&gt;&lt;/p&gt;
+          &lt;p class=&quot;m-2&quot;&gt;
+            &lt;label :class=&quot;buttonStyle&quot;&gt;
+              ファイル選択
+              &lt;input id=&quot;inputFile&quot; @change=&quot;fileSelected&quot; type=&quot;file&quot; required class=&quot;text-white hidden&quot;&gt;
+            &lt;/label&gt;
+          &lt;/p&gt;
+          &lt;p class=&quot;m-2&quot;&gt;&lt;button @click=&quot;upload()&quot; :class=&quot;buttonStyle&quot;&gt;アップロード&lt;/button&gt;&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;script type=&quot;module&quot;&gt;
+      Alpine.data(&quot;app&quot;, () =&gt; ({
+        // CSSクラスで何回も使うのを定義しておきます
+        buttonStyle: &quot;bg-gray-300 p-1 rounded&quot;,
+        darkButtonStyle: &quot;bg-gray-500 text-white p-1 rounded&quot;,
+        dialogBackStyle: &quot;absolute inset-0 flex justify-center items-center bg-black bg-opacity-50&quot;,
+        dialogForeStyle: &quot;bg-white mx-auto w-1/2 mt-8 shadow-xl text-center p-1 rounded&quot;
+      }))
+    &lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+  </body>
+</html>

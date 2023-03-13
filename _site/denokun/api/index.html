@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title></title>
+    <link rel="stylesheet" href="/denokun/style.css">
+  </head>
+  <body>
+    <div class="header" onclick="location.href = '.'">
+      
+    </div>
+      <p>サーバのAPIを決める</p>
+<hr>
+<p>ユーザを登録する</p>
+<p>パス</p>
+<pre><code>/api/regist
+</code></pre>
+<p>リクエスト</p>
+<pre><code class="language-json">{
+  name: &quot;user1&quot;,  // ユーザ名
+  pass: &quot;password1&quot;   // パスワード
+}
+</code></pre>
+<p>レスポンス</p>
+<pre><code class="language-json">{
+  session: &quot;43604de8-fb27-48a1-a33d-7df8d6139505&quot;, // セッション
+  err: &quot;登録されているユーザ名です&quot; // エラーメッセージ
+}
+</code></pre>
+<hr>
+<p>ログインする</p>
+<p>パス</p>
+<pre><code>/api/login
+</code></pre>
+<p>リクエスト</p>
+<pre><code class="language-json">{
+  name &quot;user1&quot;, // ユーザ名
+  pass &quot;password1&quot;  // パスワード
+}
+</code></pre>
+<p>レスポンス</p>
+<pre><code class="language-json">{
+  session: &quot;43604de8-fb27-48a1-a33d-7df8d6139505&quot;, // セッション
+  err: &quot;パスワードが違います&quot; // エラーメッセージ
+}
+</code></pre>
+<hr>
+<p>ログアウトする</p>
+<p>パス</p>
+<pre><code>/api/logout
+</code></pre>
+<p>リクエスト</p>
+<pre><code class="language-json">{
+  session: &quot;43604de8-fb27-48a1-a33d-7df8d6139505&quot;, // セッション
+}
+</code></pre>
+<hr>
+<p>ログイン中のユーザ情報を取得する</p>
+<p>パス</p>
+<pre><code>/api/user
+</code></pre>
+<p>リクエスト</p>
+<pre><code class="language-json">{
+  session: &quot;43604de8-fb27-48a1-a33d-7df8d6139505&quot;, // セッション
+}
+</code></pre>
+<p>レスポンス</p>
+<pre><code class="language-json">{
+  name: &quot;テスト&quot;  // ユーザ名
+}
+</code></pre>
+<hr>
+<p>ログイン前の写真一覧を取得する</p>
+<p>パス</p>
+<pre><code>/api/public_timeline
+</code></pre>
+<p>リクエスト</p>
+<pre><code class="language-json">{
+  sort: &quot;new&quot; // 並び替え 新着=new いいね数=trend
+}
+</code></pre>
+<p>レスポンス</p>
+<pre><code class="language-json">[
+  {
+    id: 1, // 写真ID
+    url: &quot;http://denoupload/1.png&quot;, // 画像URL
+    good: 3,     // いいね数
+    mygood: true // いいね済
+  }
+]
+</code></pre>
+<hr>
+<p>ログイン後の写真を一覧する</p>
+<p>パス</p>
+<pre><code>/api/timeline
+</code></pre>
+<p>リクエスト</p>
+<pre><code class="language-json">{
+  session: &quot;43604de8-fb27-48a1-a33d-7df8d6139505&quot;, // セッション
+  sort: &quot;new&quot; // 並び替え 新着=new いいね数=trend
+}
+</code></pre>
+<p>レスポンス</p>
+<pre><code class="language-json">[
+  {
+    id: 1, // 写真ID
+    url: &quot;http://denoupload/1.png&quot;, // 画像URL
+    good: 3,     // いいね数
+    mygood: true // いいね済
+  }
+]
+</code></pre>
+<hr>
+<p>写真を投稿する</p>
+<p>パス</p>
+<pre><code>/api/post
+</code></pre>
+<p>リクエスト</p>
+<pre><code class="language-json">  session: &quot;43604de8-fb27-48a1-a33d-7df8d6139505&quot;, // セッション
+  url: &quot;http://denoupload/1.png&quot;, // 画像URL 
+</code></pre>
+<hr>
+<p>いいねする</p>
+<p>パス</p>
+<pre><code>/api/good
+</code></pre>
+<p>リクエスト</p>
+<pre><code class="language-json">{
+  session: &quot;43604de8-fb27-48a1-a33d-7df8d6139505&quot;, // セッション
+  photoId: 1, // 画像ID
+  del: false  // いいねを解除する
+}
+</code></pre>
+
+  </body>
+</html>

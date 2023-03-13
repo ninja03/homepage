@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title></title>
+    <link rel="stylesheet" href="/denokun/style.css">
+  </head>
+  <body>
+    <div class="header" onclick="location.href = '.'">
+      
+    </div>
+      <p>最小構成のソースをデプロイする</p>
+<p>GitHub Desktopでソースをコミットする<br>
+「Changes」のコミットしたいファイルにチェックを入れる<br>
+「Summary」を入力する<br>
+「Commit to main」をクリックする<br>
+<img src="/denokun/img/desktop_commit.jpg" width="480"/><br>
+「Push origin」をクリックしてGitHubに反映する<br>
+<img src="/denokun/img/desktop_push.jpg" width="240"/><br>
+他の人の変更をGitHubからダウンロードするには「Fetch origin」をクリックした後<br>
+<img src="/denokun/img/desktop_fetch.jpg" width="240"/><br>
+「Pull origin」をクリックする<br>
+<img src="/denokun/img/desktop_pull.jpg" width="240"/></p>
+<hr>
+<p>サーバにSSHで入る</p>
+<p><a href="https://forest.watch.impress.co.jp/library/software/utf8teraterm/">TeraTerm</a>を起動する</p>
+<p>SSHを選択する<br>
+<img src="/denokun/img/tterm1.jpg" width="320"/><br>
+RSA/DSA/ECDSA/ED25519鍵を使うを選択<br>
+<img src="/denokun/img/tterm2.jpg" width="320"/></p>
+<p>Denoをインストールする</p>
+<pre><code class="language-sh">curl -fsSL https://deno.land/x/install/install.sh | sh
+</code></pre>
+<p>Denoにパスを通す<br>
+「.bash_profile」に追記する</p>
+<pre><code class="language-sh">vi .bash_profile
+</code></pre>
+<p>追記内容</p>
+<pre><code>export DENO_INSTALL=&quot;/root/.deno&quot;
+export PATH=&quot;$DENO_INSTALL/# bin:$PATH&quot;
+</code></pre>
+<p>反映する</p>
+<pre><code class="language-sh">source .bash_profile
+</code></pre>
+<p>ソースを取得する</p>
+<pre><code class="language-sh">git clone https://github.com/ユーザ名/リポジトリ名.git
+cd リポジトリ名
+</code></pre>
+<p>8881番ポートを開く</p>
+<pre><code class="language-sh">firewall-cmd --permanent --add-port=8881/tcp
+firewall-cmd --reload
+</code></pre>
+<p>サーバを起動する</p>
+<pre><code class="language-sh">nohup ./run.sh &amp;
+</code></pre>
+<p>「Enter」でターミナルに戻る<br>
+ログが「nohup.out」に出力される</p>
+<p>サーバを更新する</p>
+<pre><code class="language-sh">git pull
+</code></pre>
+<p>サーバを停止する<br>
+プロセスIDを探してkillする</p>
+<pre><code class="language-sh">ps x | grep deno
+kill プロセスID
+</code></pre>
+
+  </body>
+</html>

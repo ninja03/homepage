@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title></title>
+    <link rel="stylesheet" href="/denokun/style.css">
+  </head>
+  <body>
+    <div class="header" onclick="location.href = '.'">
+      
+    </div>
+      <p>ユーザ登録、ログイン、ログアウトを実装する<br>
+パスワードは安全のためにハッシュ化して保存する</p>
+<p><code>main.js</code></p>
+<pre><code class="language-javascript">import { Server } from &quot;https://ninja03.github.io/denokun/lib/Server.js&quot;
+
+// DBはデータはSQLiteに保存してdeno-sqliteで読み書きします
+import { DB } from &quot;https://deno.land/x/sqlite@v3.0.0/mod.ts&quot;
+
+// bcryptはパスワードハッシュ化用です
+import * as bcrypt from &quot;https://deno.land/x/bcrypt@v0.2.4/mod.ts&quot;
+
+class MyServer extends Server {
+  // 新しいユーザを登録してセッションを返します
+  regist(req) {
+    const user = this.db.queryEntries(&quot;select * from user where name = :name&quot;, {
+      name: req.name
+    })[0]
+    if (user) {
+      return { err: &quot;登録されています&quot; }
+    }
+    const hashPass = bcrypt.hashSync(req.pass)
+    const session = crypto.randomUUID()
+    this.db.query(&quot;insert into user (name, pass, session) values (:name, :pass, :session)&quot;, {
+      name: req.name,
+      pass: hashPass,
+      session: session
+    })
+    return { session }
+  }
+
+  // ログインします
+  // リクエストのパスワードをハッシュ化して
+  // DB内のハッシュ値と比較します
+  // 合っていればセッションをランダムに作ってDBに保存して
+  // レスポンスで返します
+  login(req) {
+    const user = this.db.queryEntries(&quot;select * from user where name = :name limit 1&quot;, {
+      name: req.name
+    })[0]
+    if (!user) {
+      return { err: &quot;登録されていません&quot; }
+    }
+    // ハッシュは2番目の引数に
+    if (!bcrypt.compareSync(req.pass, user.pass)) {
+      return { err: &quot;パスワードが違います&quot; }
+    }
+    const session = crypto.randomUUID()
+    this.db.query(&quot;update user set session = :session where id = :userId&quot;, {
+      session: session,
+      userId: user.id
+    })
+    return { session }
+  }
+
+  // ログアウトします
+  // DBのセッションを削除します
+  logout(user) {
+    this.db.query(&quot;update user set session = null where id = :userId&quot;, {
+      userId: user.id
+    })
+    return {}
+  }
+}
+
+</code></pre>
+<hr>
+<p>ログインな必要なAPIに<br>
+セッションから特定したユーザを渡します</p>
+<p><code>main.js</code></p>
+<pre><code class="language-javascript">class MyServer extends Server {
+  api(path, req) {
+    console.log(path, req)
+    // セッション不要API
+    switch (path) {
+      case &quot;/api/regist&quot;:          return this.regist(req)
+      case &quot;/api/login&quot;:           return this.login(req)
+      case &quot;/api/public_timeline&quot;: return this.publicTimeline(req)
+    }
+    // セッション必要API
+    if (!(&quot;session&quot; in req)) {
+      return
+    }
+    // リクエストのセッションをDBのセッションと
+    // 比較してユーザを特定します
+    const user = this.db.queryEntries(&quot;select * from user where session = :session&quot;, {
+      session: req.session
+    })[0]
+    if (!user) {
+      return
+    }
+
+    switch (path) {
+      case &quot;/api/user&quot;:     return this.getUser(user)
+      case &quot;/api/logout&quot;:   return this.logout(user)
+      case &quot;/api/timeline&quot;: return this.timeline(user, req)
+      case &quot;/api/post&quot;:     return this.post(user, req)
+      case &quot;/api/good&quot;:     return this.good(user, req)
+    }
+  }
+}
+</code></pre>
+
+  </body>
+</html>

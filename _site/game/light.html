@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no" , initial-scale=1.0 />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>ライツアウト</title>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canv" width="320" height="352"></canvas>
+  <script type="module">
+    const FONT_SIZE = 38
+    const W = 8
+    const H = 8
+
+    let ctx
+    let board
+    let clear
+
+    const main = () => {
+      const canv = document.getElementById("canv")
+      ctx = canv.getContext("2d")
+      if (navigator.userAgent.indexOf("iPhone") != -1
+        || navigator.userAgent.indexOf("iPad") != -1
+        || navigator.userAgent.indexOf("Android") != -1) {
+        canv.addEventListener("touchstart", touch)
+      }
+      else {
+        canv.addEventListener("click", click)
+      }
+      start()
+    }
+
+    const start = () => {
+      board = []
+      for (let i = 0; i < H; i++) {
+        board[i] = []
+        for (let j = 0; j < W; j++) {
+          board[i][j] = 0
+        }
+      }
+      for (let i = 0; i < 7; i++) {
+        flip(
+          parseInt(Math.random() * H),
+          parseInt(Math.random() * W)
+        )
+      }
+      clear = false
+      draw()
+    }
+
+    const draw = () => {
+      ctx.fillStyle = "rgb(235,208,175)"
+      ctx.fillRect(0, 0, 320, 352)
+      ctx.fillStyle = "black"
+      ctx.font = "bold " + FONT_SIZE + "px Monospace"
+      const title = ["🌛", "🌛", "", "", "", "", "🌛", "🌛"]
+      for (let i = 0; i < title.length; i++) {
+        ctx.fillText(title[i], i * FONT_SIZE, FONT_SIZE)
+      }
+      for (let i = 0; i < H; i++) {
+        for (let j = 0; j < W; j++) {
+          let text = ""
+          if (board[i][j] == 0) {
+            text = "🌑"
+          }
+          else if (board[i][j] == 1) {
+            text = "🌕"
+          }
+          if (text.length > 0) {
+            ctx.fillText(
+              text,
+              j * FONT_SIZE,
+              (i + 2) * FONT_SIZE)
+          }
+        }
+      }
+      if (clear) {
+        ctx.font = "bold " + 100 + "px Monospace"
+        ctx.fillText("👏", 100, 200)
+      }
+    }
+
+    const touch = e => {
+      touchMain(
+        parseInt(e.touches[0].clientX / FONT_SIZE),
+        parseInt(e.touches[0].clientY / FONT_SIZE) - 1)
+    }
+
+    const click = e => {
+      touchMain(
+        parseInt(e.clientX / FONT_SIZE),
+        parseInt(e.clientY / FONT_SIZE) - 1)
+    }
+
+    const touchMain = (x, y) => {
+      if (x >= W || y >= H || x < 0 || y < 0 || clear) {
+        return
+      }
+      flip(x, y)
+      checkClear()
+      draw()
+    }
+
+    const checkClear = () => {
+      for (let i = 0; i < H; i++) {
+        for (let j = 0; j < W; j++) {
+          if (board[0][0] != board[i][j]) {
+            return
+          }
+        }
+      }
+      clear = true
+    }
+
+    const flip = (x, y) => {
+      for (let k = -1; k <= 1; k++) {
+        for (let l = -1; l <= 1; l++) {
+          if (0 <= y + k && y + k < H
+            && 0 <= x + l && x + l < W
+            && (k == 0 || l == 0)) {
+            board[y + k][x + l] = board[y + k][x + l] == 1 ? 0 : 1
+          }
+        }
+      }
+    }
+
+    main()
+  </script>
+</body>
+
+</html>

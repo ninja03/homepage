@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no" , initial-scale=1.0 />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>順番に早押し</title>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canv" width="320" height="352"></canvas>
+  <script>
+    const FONT_SIZE_L = 76
+    const FONT_SIZE_S = 38
+    const W = 4
+    const H = 4
+    const TILES = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩", "⑪", "⑫", "⑬", "⑭", "⑮", "⑯"]
+    const NUMBERS = ["０", "１", "２", "３", "４", "５", "６", "７", "８", "９"]
+    const CLOCKS = ["🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"]
+
+    let ctx
+    let clear
+    let nowNumber
+    let startTime
+    let time
+    let numberBoard
+    let pushedBoard
+    let timerId
+
+    const main = () => {
+      const canv = document.getElementById("canv")
+      ctx = canv.getContext("2d")
+      if (navigator.userAgent.indexOf("iPhone") != -1
+        || navigator.userAgent.indexOf("iPad") != -1
+        || navigator.userAgent.indexOf("Android") != -1) {
+        canv.addEventListener("touchstart", e => {
+          touchMain(e.touches[0].clientX, e.touches[0].clientY)
+        })
+      } else {
+        canv.addEventListener("click", e => {
+          touchMain(e.clientX, e.clientY)
+        })
+      }
+      start()
+    }
+
+    const create2DArray = () => {
+      const array = []
+      for (let i = 0; i < H; i++) {
+        array[i] = []
+        for (let j = 0; j < W; j++) {
+          array[i][j] = 0
+        }
+      }
+      return array
+    }
+
+    const start = () => {
+      clear = false
+      nowNumber = 1
+      startTime = Date.now()
+      time = 0
+      numberBoard = create2DArray()
+      pushedBoard = create2DArray()
+      const list = []
+      for (let i = 0; i < H * W; i++) {
+        list[i] = i + 1
+      }
+      list.sort((a, b) => Math.random() < 0.5 ? -1 : 1)
+      for (let i = 0; i < list.length; i++) {
+        numberBoard[parseInt(i / H)][parseInt(i % W)] = list[i]
+      }
+      timerId = setInterval(timerRoutine, 1000 / 60)
+    }
+
+    const timerRoutine = () => {
+      time = Date.now() - startTime
+      draw()
+    }
+
+    const draw = () => {
+      ctx.fillStyle = "rgb(235,208,175)"
+      ctx.fillRect(0, 0, 320, 352)
+      ctx.fillStyle = "black"
+      ctx.font = "bold " + FONT_SIZE_S + "px Monospace"
+      const title = ["", ""]
+      title.push(CLOCKS[parseInt(time / 1000) % CLOCKS.length])
+      const timeText = "" + parseInt(time / 1000)
+      if (timeText.length > 1) {
+        title.push(NUMBERS[timeText[0]])
+        title.push(NUMBERS[timeText[1]])
+      } else {
+        title.push("")
+        title.push(NUMBERS[timeText[0]])
+      }
+      title.push(CLOCKS[parseInt(time / 1000) % CLOCKS.length])
+      for (i = 0; i < title.length; i++) {
+        ctx.fillText(title[i], i * FONT_SIZE_S, FONT_SIZE_S)
+      }
+      ctx.font = "bold " + FONT_SIZE_L + "px Monospace"
+      for (i = 0; i < H; i++) {
+        for (j = 0; j < W; j++) {
+          let text
+          if (pushedBoard[i][j] == 0) {
+            text = TILES[numberBoard[i][j] - 1]
+          } else {
+            text = ""
+          }
+          ctx.fillText(text, j * FONT_SIZE_L, (i + 1) * FONT_SIZE_L + FONT_SIZE_S)
+        }
+      }
+      if (clear) {
+        ctx.font = "bold " + 100 + "px Monospace"
+        ctx.fillText("👏", 100, 200)
+      }
+    }
+
+    const touchMain = (tx, ty) => {
+      if (clear) {
+        return
+      }
+      const x = parseInt(tx / FONT_SIZE_L)
+      const y = parseInt((ty + FONT_SIZE_S) / FONT_SIZE_L - 1)
+      if (x >= W || y >= H || x < 0 || y < 0 || pushedBoard[y][x] == 1) {
+        return
+      }
+      if (nowNumber == numberBoard[y][x]) {
+        pushedBoard[y][x] = 1
+        nowNumber++
+      }
+      checkClear()
+      draw()
+    }
+
+    const checkClear = () => {
+      for (let i = 0; i < H; i++) {
+        for (j = 0; j < W; j++) {
+          if (pushedBoard[i][j] == 0) {
+            return
+          }
+        }
+      }
+      clear = true
+      clearInterval(timerId)
+    }
+
+    main()
+  </script>
+</body>
+
+</html>

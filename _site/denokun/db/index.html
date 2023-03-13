@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title></title>
+    <link rel="stylesheet" href="/denokun/style.css">
+  </head>
+  <body>
+    <div class="header" onclick="location.href = '.'">
+      
+    </div>
+      <p>SQLite用ライブラリ<a href="https://github.com/dyedgreen/deno-sqlite">deno-sqlite</a>を使う</p>
+<p>テーブルを設計する</p>
+<ul>
+<li>ログイン情報保存のためのuserテーブル</li>
+<li>写真URLといいね数のためのphotoテーブル</li>
+<li>いいねを1回だけできるようにgoodテーブル</li>
+</ul>
+<hr>
+<p>userテーブル</p>
+<table>
+<thead>
+<tr>
+<th>カラム名</th>
+<th>型</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>数値</td>
+<td>ID(自動採番)</td>
+</tr>
+<tr>
+<td>name</td>
+<td>文字列</td>
+<td>ユーザ名</td>
+</tr>
+<tr>
+<td>pass</td>
+<td>文字列</td>
+<td>パスワード</td>
+</tr>
+<tr>
+<td>session</td>
+<td>文字列</td>
+<td>セッション</td>
+</tr>
+<tr>
+<td>time</td>
+<td>文字列</td>
+<td>登録日時</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p>photoテーブル (写真)</p>
+<table>
+<thead>
+<tr>
+<th>カラム名</th>
+<th>型</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>数値</td>
+<td>ID(自動採番)</td>
+</tr>
+<tr>
+<td>user_id</td>
+<td>数値</td>
+<td>ユーザID</td>
+</tr>
+<tr>
+<td>url</td>
+<td>文字列</td>
+<td>画像URL</td>
+</tr>
+<tr>
+<td>good</td>
+<td>数値</td>
+<td>いいね数</td>
+</tr>
+<tr>
+<td>time</td>
+<td>文字列</td>
+<td>投稿日時</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p>goodテーブル (いいね)</p>
+<table>
+<thead>
+<tr>
+<th>カラム名</th>
+<th>型</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>user_id</td>
+<td>数値</td>
+<td>ユーザID</td>
+</tr>
+<tr>
+<td>photo_id</td>
+<td>数値</td>
+<td>写真ID</td>
+</tr>
+<tr>
+<td>time</td>
+<td>文字列</td>
+<td>いいね日時</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p>コンストラクタを追加する<br>
+サーバを起動すると<code>data.db</code>を作成する<br>
+テーブルがない場合は新しく作る</p>
+<p>データを閲覧・編集するには<br>
+<a href="https://sqlitebrowser.org/">DB Browser for SQLite</a>をインストールする</p>
+<p><code>main.js</code></p>
+<pre><code class="language-javascript">import { Server } from &quot;https://ninja03.github.io/denokun/lib/Server.js&quot;
+import { DB } from &quot;https://deno.land/x/sqlite@v3.0.0/mod.ts&quot;
+
+class MyServer extends Server {
+  constructor(dbname) {
+    super()
+    this.db = new DB(dbname)
+
+    // ユーザーテーブル
+    this.db.query(`
+      create table if not exists user (
+        id integer primary key autoincrement,
+        name text not null unique,
+        pass text not null,
+        session text,
+        time not null default (datetime ('now', 'localtime'))
+      )
+    `)
+
+    // 写真テーブル
+    this.db.query(`
+      create table if not exists photo (
+        id      integer primary key autoincrement,
+        user_id integer not null,
+        url     text not null,
+        good    integer not null default 0,
+        time not null default (datetime ('now', 'localtime'))
+      )
+    `)
+
+    // いいねテーブル(ユーザーIDと写真IDでユニーク)
+    this.db.query(`
+      create table if not exists good (
+        user_id integer not null,
+        photo_id integer not null,
+        time not null default (datetime ('now', 'localtime')),
+        primary key(user_id, photo_id)
+      )
+    `)
+  }
+
+  new MyServer(&quot;data.db&quot;).start(8881)
+}
+</code></pre>
+
+  </body>
+</html>

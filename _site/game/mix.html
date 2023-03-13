@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no" , initial-scale=1.0 />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Mix Juice Simulator</title>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canv" width="320" height="352"></canvas>
+  <script type="module">
+    const MATERIAL = [
+      ["🍇", "5E4A9D"],
+      ["🍊", "F7630C"],
+      ["🍌", "FFD679"],
+      ["🍍", "FFB900"],
+      ["🍏", "BAD80A"],
+      ["🍑", "F7894A"],
+      ["🍈", "E4F577"],
+      ["🍋", "FCE100"],
+      ["🍎", "F03A17"],
+      ["🍓", "F03A17"]
+    ]
+
+    const DISP_W = 320
+    const DISP_H = 320
+    const COL = 5
+    const MATERIAL_Y = 170
+    const FONT_SIZE = DISP_W / COL
+    const FONT_SIZE_S = 40
+
+    let ctx
+    let cookState
+    let selectList
+
+    const main = () => {
+      ctx = canv.getContext("2d")
+      if (navigator.userAgent.indexOf("iPhone") != -1
+        || navigator.userAgent.indexOf("iPad") != -1
+        || navigator.userAgent.indexOf("Android") != -1) {
+        canv.addEventListener("touchstart", e => {
+          const r = e.target.getBoundingClientRect()
+          touchMain(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top)
+        })
+      } else {
+        canv.addEventListener("click", e => {
+          const r = e.target.getBoundingClientRect()
+          touchMain(e.clientX - r.left, e.clientY - r.top)
+        })
+      }
+      start()
+    }
+
+    const start = () => {
+      cookState = 0
+      selectList = []
+      draw()
+    }
+
+    const draw = () => {
+      ctx.fillStyle = "rgb(235,208,175)"
+      ctx.fillRect(0, 0, DISP_W, DISP_H)
+      ctx.fillStyle = "black"
+
+      ctx.strokeStyle = "black"
+      ctx.lineWidth = 5
+      ctx.beginPath()
+      ctx.moveTo(100, 20)
+      ctx.lineTo(100, 160)
+      ctx.lineTo(200, 160)
+      ctx.lineTo(200, 20)
+      ctx.stroke()
+
+      ctx.font = FONT_SIZE + "px Monospace"
+      for (let i = 0; i < MATERIAL.length; i++) {
+        ctx.fillText(
+          MATERIAL[i][0],
+          (i % COL) * FONT_SIZE,
+          FONT_SIZE * parseInt(i / COL) + MATERIAL_Y + FONT_SIZE
+        )
+      }
+
+      ctx.fillText("🔄", 220, 120)
+
+      if (cookState == 0) {
+        ctx.font = FONT_SIZE_S + "px Monospace"
+        for (let i = 0; i < selectList.length; i++) {
+          ctx.fillText(
+            MATERIAL[selectList[i]][0],
+            110 + FONT_SIZE_S * (i % 2),
+            150 - FONT_SIZE_S * parseInt(i / 2)
+          )
+        }
+      } else if (cookState == 1) {
+        for (let i = 20; i < 140 - 4; i++) {
+          for (let j = 0 + 4; j < 100 - 4; j++) {
+            ctx.fillStyle = "#" + MATERIAL[selectList[parseInt(Math.random() * selectList.length)]][1]
+            ctx.fillRect(j + 100, i + 20, 1, 1)
+          }
+        }
+      }
+    }
+
+    const touchMain = (tx, ty) => {
+      if (selectList.length > 0
+        && 220 < tx && tx < 220 + FONT_SIZE
+        && 120 - FONT_SIZE < ty && ty < 120) {
+        cookState = 1
+        draw()
+      } else if (cookState == 0
+        && selectList.length < 6
+        && ty > MATERIAL_Y) {
+        const select = parseInt((ty - MATERIAL_Y) / FONT_SIZE) * COL + parseInt(tx / FONT_SIZE);
+        if (0 <= select && select < MATERIAL.length) {
+          selectList.push(select)
+          draw()
+        }
+      }
+    }
+
+    main()
+  </script>
+</body>
+
+</html>

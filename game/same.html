@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no" , initial-scale=1.0 />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>さめがめ</title>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canv" width="320" height="352"></canvas>
+  <script type="module">
+    const FONT_SIZE = 38
+    const SAME_EMOJI = "🐬"
+    const FISH_EMOJI = ["🐡", "🐠", "🐟"]
+    const NUMBERS = ["０", "１", "２", "３", "４", "５", "６", "７", "８", "９"]
+    const W = 8
+    const H = 8
+    const HP_FONT = "bold " + FONT_SIZE + "px Monospace"
+    const BG_COLOR = "rgb(235, 208, 175)"
+    const HP_COLOR = "black"
+
+    let ctx
+    let board
+    let hp
+
+    const main = () => {
+      const canv = document.getElementById("canv")
+      ctx = canv.getContext("2d")
+      if (navigator.userAgent.indexOf("iPhone") != -1
+        || navigator.userAgent.indexOf("iPad") != -1
+        || navigator.userAgent.indexOf("Android") != -1) {
+        canv.addEventListener("touchstart", touch)
+      } else {
+        canv.addEventListener("click", click)
+      }
+      start()
+    }
+
+    const start = () => {
+      hp = 64
+      board = []
+      for (let i = 0; i < H; i++) {
+        board[i] = []
+        for (let j = 0; j < W; j++) {
+          board[i][j] = parseInt(Math.random() * FISH_EMOJI.length)
+        }
+      }
+      drawAll()
+    }
+
+    const drawAll = () => {
+      drawBg();
+      drawHp();
+      drawFish();
+      if (hp == 0) {
+        drawClear()
+      }
+    }
+
+    const drawBg = () => {
+      ctx.fillStyle = BG_COLOR
+      ctx.fillRect(0, 0, 320, 352)
+    }
+
+    const drawHp = () => {
+      let hpText
+      ctx.fillStyle = HP_COLOR;
+      ctx.font = HP_FONT;
+      for (let i = 0; i < 2; i++) {
+        ctx.fillText(SAME_EMOJI, i * FONT_SIZE, FONT_SIZE)
+      }
+      if (hp < 64) {
+        hpText = createHpText()
+      } else {
+        hpText = "さめがめ"
+      }
+      for (let i = 0; i < hpText.length; i++) {
+        ctx.fillText(hpText[i], (i + 6 - hpText.length) * FONT_SIZE, FONT_SIZE)
+      }
+      for (let i = 0; i < 2; i++) {
+        ctx.fillText(SAME_EMOJI, (i + 6) * FONT_SIZE, FONT_SIZE)
+      }
+    }
+
+    const createHpText = () => {
+      const text = "" + hp
+      const hpText = []
+      for (let i = 0; i < text.length; i++) {
+        hpText.push(NUMBERS[text[i]])
+      }
+      return hpText
+    }
+
+    const drawFish = () => {
+      for (let i = 0; i < H; i++) {
+        for (let j = 0; j < W; j++) {
+          if (board[i][j] >= 0) {
+            ctx.fillText(
+              FISH_EMOJI[board[i][j]],
+              j * FONT_SIZE,
+              (i + 2) * FONT_SIZE
+            )
+          }
+        }
+      }
+    }
+
+    const touch = e => {
+      touchMain(
+        parseInt(e.touches[0].clientX / FONT_SIZE),
+        parseInt(e.touches[0].clientY / FONT_SIZE) - 1
+      )
+    }
+
+    const click = e => {
+      touchMain(
+        parseInt(e.clientX / FONT_SIZE),
+        parseInt(e.clientY / FONT_SIZE) - 1
+      )
+    }
+
+    const touchMain = (x, y) => {
+      if (x >= W || y >= H || x < 0 || y < 0 || board[y][x] < 0) {
+        return
+      }
+      deleteFish(x, y)
+      drawAll()
+    }
+
+    const deleteFish = (x, y) => {
+      const deleteBoard = initDeleteBoard()
+      const fish = board[y][x]
+      searchDelete(x, y, fish, deleteBoard)
+      const deleteNum = calcDeleteNum(deleteBoard)
+      if (deleteNum >= 2) {
+        deleteFromBoard(deleteBoard)
+        hp = hp - deleteNum
+        packBoard()
+      }
+    }
+
+    const initDeleteBoard = () => {
+      const deleteBoard = []
+      for (let i = 0; i < H; i++) {
+        deleteBoard[i] = []
+        for (let j = 0; j < W; j++) {
+          deleteBoard[i][j] = false
+        }
+      }
+      return deleteBoard
+    }
+
+    const searchDelete = (x, y, fish, deleteBoard) => {
+      if (board[y][x] != fish || board[y][x] < 0 || deleteBoard[y][x] == true) {
+        return
+      }
+      deleteBoard[y][x] = true
+      if (x > 0) {
+        searchDelete(x - 1, y, fish, deleteBoard)
+      }
+      if (y > 0) {
+        searchDelete(x, y - 1, fish, deleteBoard)
+      }
+      if (x < W - 1) {
+        searchDelete(x + 1, y, fish, deleteBoard)
+      }
+      if (y < H - 1) {
+        searchDelete(x, y + 1, fish, deleteBoard)
+      }
+    }
+
+    const calcDeleteNum = deleteBoard => {
+      let deleteNum = 0
+      for (let i = 0; i < H; i++) {
+        for (let j = 0; j < W; j++) {
+          if (deleteBoard[j][i]) {
+            deleteNum = deleteNum + 1
+          }
+        }
+      }
+      return deleteNum
+    }
+
+    const deleteFromBoard = deleteBoard => {
+      for (let i = 0; i < H; i++) {
+        for (let j = 0; j < W; j++) {
+          if (deleteBoard[j][i]) {
+            board[j][i] = -1
+          }
+        }
+      }
+    }
+
+    const packBoard = () => {
+      for (let j = 0; j < W; j++) {
+        const buf = []
+        for (let i = 0; i < H; i++) {
+          if (board[i][j] >= 0) {
+            buf.push(board[i][j])
+          }
+        }
+        for (let i = H - 1; i >= 0; i--) {
+          board[i][j] = buf.length > 0 ? buf.pop() : -1
+        }
+      }
+      for (let i = 0; i < H; i++) {
+        const buf = []
+        for (let j = W - 1; j >= 0; j--) {
+          if (board[i][j] >= 0) {
+            buf.push(board[i][j])
+          }
+        }
+        for (let j = 0; j < W; j++) {
+          board[i][j] = buf.length > 0 ? buf.pop() : -1
+        }
+      }
+    }
+
+    const drawClear = () => {
+      ctx.font = "bold " + 100 + "px Monospace"
+      ctx.fillText("👏", 100, 200)
+    }
+
+    main()
+  </script>
+</body>
+
+</html>

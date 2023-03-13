@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title></title>
+    <link rel="stylesheet" href="/denokun/style.css">
+  </head>
+  <body>
+    <div class="header" onclick="location.href = '.'">
+      
+    </div>
+      <p>フロントエンドの実装に使う<a href="https://alpinejs.dev/start-here">Alpine.js</a>の機能</p>
+<p><strong><a href="https://alpinejs.dev/directives/data">x-data</a> (タグの内部でx-textなどが利用できるようにする)</strong></p>
+<pre><code class="language-html">&lt;div x-data=&quot;app&quot;&gt;
+  &lt;!-- x-textなどが利用できる --&gt;
+&lt;/div&gt;
+
+&lt;script type=&quot;module&quot;&gt;
+  Alpine.data(&quot;app&quot;, () =&gt; ({
+    init() {
+      // 初期化処理
+    }
+  }))
+&lt;/script&gt;
+</code></pre>
+<p><strong><a href="https://alpinejs.dev/directives/text">x-text</a> (JS変数とHTMLタグ内のテキストの連携)</strong></p>
+<pre><code class="language-html">&lt;div x-data=&quot;app&quot;&gt;
+  時計
+  &lt;div x-text=&quot;text&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script type=&quot;module&quot;&gt;
+  Alpine.data(&quot;app&quot;, () =&gt; ({
+    text: &quot;&quot;,
+
+    init() {
+      setInterval(() =&gt; {
+        const now = new Date()
+        this.text = now.getHours() + &quot;:&quot; + now.getMinutes() + &quot;:&quot; + now.getSeconds()
+      }, 100)
+    }
+  }))
+&lt;/script&gt;
+</code></pre>
+<p><strong><a href="https://alpinejs.dev/directives/bind">:(コロン)</a> (JS変数とHTML属性の連携)</strong></p>
+<pre><code class="language-html">&lt;div x-data=&quot;app&quot;&gt;
+  &lt;a :href=&quot;link&quot;&gt;ランダムリンク&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script type=&quot;module&quot;&gt;
+  Alpine.data(&quot;app&quot;, () =&gt; ({
+    link: &quot;http://1.com/&quot;,
+
+    init() {
+      setInterval(() =&gt; {
+        if (this.link == &quot;http://1.com/&quot;) {
+          this.link = &quot;http://2.com/&quot;
+        } else{
+          this.link = &quot;http://1.com/&quot;
+        }
+      }, 1000)
+    }
+  }))
+&lt;/script&gt;
+</code></pre>
+<p><strong><a href="https://alpinejs.dev/directives/on">@(アットマーク)</a> (JS関数とHTMLイベントを連携する)</strong></p>
+<pre><code class="language-html">&lt;div x-data=&quot;app&quot;&gt;
+  &lt;button @click=&quot;click()&quot;&gt;クリックしてください&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;script type=&quot;module&quot;&gt;
+  Alpine.data(&quot;app&quot;, () =&gt; ({
+    click() {
+      alert(&quot;クリックされました&quot;)
+    }
+  }))
+&lt;/script&gt;
+</code></pre>
+<p><strong><a href="https://alpinejs.dev/directives/show">x-show</a> (JS変数とHTMLタグの表示非表示の連携)</strong></p>
+<pre><code class="language-html">&lt;div x-data=&quot;app&quot;&gt;
+  &lt;div x-show=&quot;show&quot;&gt;3秒経ちました&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script type=&quot;module&quot;&gt;
+  Alpine.data(&quot;app&quot;, () =&gt; ({
+    show: false,
+
+    init() {
+      setTimeout(() =&gt; {
+        this.label = true
+      }, 3000)
+    }
+  }))
+&lt;/script&gt;
+</code></pre>
+<p><strong><a href="https://alpinejs.dev/directives/model">x-model</a> (JS変数とHTMLのInputタグの連携)</strong></p>
+<pre><code class="language-html">&lt;div x-data=&quot;app&quot;&gt;
+  &lt;input x-model=&quot;name&quot; /&gt;
+  &lt;button @click=&quot;click()&quot;&gt;あいさつ&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;script type=&quot;module&quot;&gt;
+  Alpine.data(&quot;app&quot;, () =&gt; ({
+    name: &quot;&quot;,
+
+    click() {
+      alert(this.name + &quot;さん こんちには&quot;)
+    }
+  }))
+&lt;/script&gt;
+</code></pre>
+<p><strong><a href="https://alpinejs.dev/directives/for">x-for</a> (JS配列変数とHTMLタグの連携)</strong></p>
+<pre><code class="language-html">&lt;div x-data=&quot;app&quot;&gt;
+  ブックマーク
+  &lt;template x-for=&quot;b in bookmark&quot;&gt;
+    &lt;a :href=&quot;b.url&quot; x-text=&quot;b.title&quot;&gt;&lt;/a&gt;&lt;br&gt;
+  &lt;/template&gt;
+&lt;/div&gt;
+
+&lt;script type=&quot;module&quot;&gt;
+  Alpine.data(&quot;app&quot;, () =&gt; ({
+    bookmark: [],
+
+    init() {
+      this.bookmark.push({ url: &quot;http://1.com/&quot;, title: &quot;サイト1&quot; })
+      this.bookmark.push({ url: &quot;http://2.com/&quot;, title: &quot;サイト2&quot; })
+    }
+  }))
+&lt;/script&gt;
+</code></pre>
+<p><strong><a href="https://alpinejs.dev/directives/transition">x-transition</a> (HTMLタグ表示時にアニメーションする)</strong></p>
+<pre><code class="language-html">&lt;div x-data=&quot;app&quot;&gt;
+  &lt;div x-show=&quot;show&quot; x-transition&gt;徐々に表示&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script type=&quot;module&quot;&gt;
+  Alpine.data(&quot;app&quot;, () =&gt; ({
+    show: false,
+
+    init() {
+      setTimeout(() =&gt; {
+        this.show = true
+      }, 1000)
+    }
+  }))
+&lt;/script&gt;
+</code></pre>
+
+  </body>
+</html>

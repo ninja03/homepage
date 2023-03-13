@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no" , initial-scale=1.0 />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>星座記号を選ぶ</title>
+  </title>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canv" width="320" height="352"></canvas>
+  <script type="module">
+    const DISP_W = 320
+    const DISP_H = 352
+    const FONT_SIZE = DISP_W / 4
+    const MASTER_QUESTION = [
+      ["🐑", "♈"],
+      ["🐂", "♉"],
+      ["👯", "♊"],
+      ["🦀", "♋"],
+      ["🦁", "♌"],
+      ["🙋", "♍"],
+      ["⚖", "♎"],
+      ["🦂", "♏"],
+      ["🏹", "♐"],
+      ["🐐", "♑"],
+      ["🏺", "♒"],
+      ["🐟", "♓"]
+    ]
+
+    let ctx
+    let clear
+    let question
+    let currentQ
+    let answeredQ
+
+    const main = () => {
+      ctx = canv.getContext("2d")
+      if (navigator.userAgent.indexOf("iPhone") != -1
+        || navigator.userAgent.indexOf("iPad") != -1
+        || navigator.userAgent.indexOf("Android") != -1) {
+        canv.addEventListener("touchstart", e => {
+          touchMain(e.touches[0].clientX, e.touches[0].clientY)
+        })
+      } else {
+        canv.addEventListener("click", e => {
+          touchMain(e.clientX, e.clientY)
+        })
+      }
+      start()
+    }
+
+    const start = () => {
+      clear = false
+      answeredQ = []
+      question = MASTER_QUESTION.slice()
+      question.sort((a, b) => Math.random() < 0.5 ? -1 : 1)
+      for (let i = 0; i < question.length; i++) {
+        answeredQ[i] = 0
+      }
+      nextQ()
+      draw()
+    }
+
+    const nextQ = () => {
+      const cand = []
+      for (let i = 0; i < MASTER_QUESTION.length; i++) {
+        if (answeredQ[i] == 0) {
+          cand.push(i)
+        }
+      }
+      if (cand.length == 0) {
+        clear = true
+        return
+      }
+      currentQ = cand[parseInt(cand.length * Math.random())]
+    }
+
+    const draw = () => {
+      ctx.fillStyle = "rgb(235,208,175)"
+      ctx.fillRect(0, 0, DISP_W, DISP_H)
+      ctx.fillStyle = "black"
+
+      ctx.font = FONT_SIZE + "px Monospace"
+
+      if (!clear) {
+        ctx.fillText(
+          question[currentQ][0],
+          DISP_W / 2 - FONT_SIZE / 2,
+          FONT_SIZE
+        )
+      }
+      for (let i = 0; i < question.length; i++) {
+        if (answeredQ[i] == 0) {
+          ctx.fillText(
+            question[i][1],
+            (i % 4) * FONT_SIZE,
+            FONT_SIZE * parseInt(i / 4 + 2)
+          )
+        }
+      }
+      if (clear) {
+        ctx.font = "bold " + 100 + "px Monospace"
+        ctx.fillText("👏", 100, 200)
+      }
+    }
+
+    const touchMain = (tx, ty) => {
+      if (clear) {
+        return
+      }
+      const answer = parseInt(tx / FONT_SIZE) + 4 * parseInt((ty - FONT_SIZE) / FONT_SIZE)
+      if (answer < 0 || question.length <= answer) {
+        return
+      }
+      if (answer == currentQ) {
+        if (answeredQ[answer] == 0) {
+          answeredQ[answer] = 1
+          nextQ()
+        }
+      }
+      draw()
+    }
+
+    main()
+  </script>
+</body>
+
+</html>
