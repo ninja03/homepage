@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'/>
+  <script src="https://aframe.io/releases/1.0.4/aframe.js"></script>
+  <script src="https://unpkg.com/aframe-environment-component@1.1.0/dist/aframe-environment-component.min.js"></script>
+  <script>
+    AFRAME.registerComponent("canvas-updater", {
+      dependencies: ["geometry", "material"],
+      tick: function() {
+        var el = this.el;
+        var material;
+        material = el.getObject3D("mesh").material;
+        if (!material.map) {
+          return;
+        }
+        material.map.needsUpdate = true;
+      }
+    });
+    AFRAME.registerComponent("draw-canvas-rectangles", {
+      schema: {canvas: {type: "selector"}},
+
+      init: function () {
+        var canvas = this.canvas = this.data.canvas;
+        var ctx = this.ctx = canvas.getContext("2d");
+        ctx.fillStyle = "rgb(0, 0, 0)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      },
+
+      tick: function (t) {
+        var canvas = this.canvas;
+        var ctx = this.ctx;
+        var x;
+        var y;
+        var hue = t / 10;
+
+        // Bottom layer rectangle.
+        ctx.fillStyle = 'hsl(' + hue + ', 50%, 80%)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Middle layer rectangle.
+        ctx.fillStyle = 'hsl(' + hue + ', 50%, 60%)';
+        x = canvas.width / 10;
+        y = canvas.height / 10;
+        ctx.fillRect(x, y, canvas.width - x * 2, canvas.height - y * 2);
+
+        // Top layer rectangle.
+        hue = t / 20;
+        ctx.fillStyle = 'hsl(' + hue + ', 50%, 40%)';
+        x = canvas.width / 5;
+        y = canvas.height / 5;
+        ctx.fillRect(x, y, canvas.width - x * 2, canvas.height - y * 2);
+      }
+    });
+  </script>
+</head>
+<body>
+
+<a-scene id="scene">
+
+  <a-entity
+    environment="preset:default"
+  ></a-entity>
+
+  <a-camera
+    wasd-controls="acceleration:100"
+    look-controls
+    position="0 1.6 2"
+  ></a-camera>
+
+  <a-assets>
+    <canvas id="canvas" width="544" height="416"></canvas>
+  </a-assets>
+
+  <a-entity
+    material="shader: flat; src: #canvas"
+    geometry="primitive: plane; width: 2; height: 2"
+    position="0 2 -3"
+    rotation="-20 0 0"
+    canvas-updater
+    draw-canvas-rectangles="canvas: #canvas"
+  >
+  </a-entity>
+
+</a-scene>
+
+</body>
+</html>

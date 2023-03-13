@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'/>
+  <script src="https://aframe.io/releases/1.0.4/aframe.js"></script>
+  <script src="https://unpkg.com/aframe-environment-component@1.1.0/dist/aframe-environment-component.min.js"></script>
+  <script>
+    AFRAME.registerComponent("canvas-updater", {
+      dependencies: ["geometry", "material"],
+      tick: function() {
+        var el = this.el;
+        var material;
+        material = el.getObject3D("mesh").material;
+        if (!material.map) {
+          return;
+        }
+        material.map.needsUpdate = true;
+      }
+    });
+  </script>
+  <script src="ichigojam_vr.mjs" type="module"></script>
+</head>
+<body>
+
+<a-scene id="scene">
+
+  <a-entity
+    id="environment"
+    environment="preset:default"
+  ></a-entity>
+
+  <a-camera
+    id="camera"
+    position="0 1.6 0"
+  ></a-camera>
+
+  <a-assets>
+    <canvas id="canvas" width="544" height="416"></canvas>
+  </a-assets>
+
+  <a-plane
+    id="plane"
+    position="0 0.5 -2"
+    rotation="0 0 0"
+    width="1"
+    height="1"
+    canvas-updater
+    material="src:#canvas"
+  ></a-plane>
+
+</a-scene>
+
+</body>
+</html>

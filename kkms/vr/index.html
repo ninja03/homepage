@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>VRTest</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://aframe.io/releases/1.0.4/aframe.js"></script>
+    <script src="https://unpkg.com/aframe-environment-component@1.1.0/dist/aframe-environment-component.js"></script>
+  </head>
+  <body>
+    <a-scene>
+
+      <a-entity oculus-touch-controls="hand: left"></a-entity>
+      <a-entity oculus-touch-controls="hand: right"></a-entity>
+
+      <a-entity
+        environment="preset: arches"
+        shadow="receive: true"
+      ></a-entity>
+
+      <a-entity
+        camera
+        look-controls
+        position="0 1.6 4.5"
+        wasd-controls="acceleration:100"
+      ></a-entity>
+
+      <a-entity
+        light="type:directional; castShadow:true;"
+        position="1 2 2"
+      ></a-entity>
+
+      <a-entity
+        id="field-info"
+      >
+        <a-box
+          color="darkslategray"
+          width="5"
+          height="0.4"
+          depth="0.2"
+          position="0 0.2 -0.5"
+          shadow="receive: true"
+        >
+          <a-text
+            value="50/50"
+            width="8"
+            color="white"
+            position="-2.4 0 0.1"
+            align="left"
+          ></a-text>
+          <a-text
+            value="1678"
+            width="8"
+            color="#80C9FF"
+            width="10"
+            position="-1 0 0.1"
+            align="left"
+          ></a-text>
+          <a-text
+            value=":"
+            width="8"
+            color="white"
+            position="-0.1 0 0.1"
+            align="left"
+          ></a-text>
+          <a-text
+            value="1760"
+            color="#FE9998"
+            width="8"
+            align="left"
+            position="0.1 0 0.1"
+          ></a-text>
+          <a-text
+            value="END"
+            color="white"
+            width="8"
+            align="left"
+            position="1.4 -0 0.1"
+          ></a-text>
+        </a-box>
+      </a-entity>
+
+      <a-entity
+        id="field-table"
+      >
+        <a-box
+          v-for="a in tiles"
+          v-bind:key="a.key"
+          v-bind:color="a.color"
+          width="0.2"
+          height="0.04"
+          depth="0.2"
+          v-bind:position="a.pos"
+          rotation="0 0 0"
+          shadow="receive: true"
+        >
+          <a-text
+            v-bind:value="a.point"
+            width="2"
+            v-bind:color="a.pointColor"
+            position="0.04 0.02 0.04"
+            rotation="-90 0 0"
+            align="center"
+          >
+          </a-text>
+          <a-cone
+            v-if="a.coneVisible"
+            v-bind:color="a.coneColor"
+            radius-bottom="0.08"
+            radius-top="0.025"
+            height="0.2"
+            width="0.08"
+            depth="0.08"
+            position="-0.04 0.02 -0.04"
+          ></a-cone>
+        </a-box>
+      </a-entity>
+
+    </a-scene>
+
+    <script type="module">
+      import { Game, getUrlQueries, userShow, getGameInfo, nowUnixTime, getTurnText } from "./util.js";
+      import { testData } from "./test_data.js";
+      Vue.config.ignoredElements = [/^a-/];
+
+      let game;
+
+      const fieldTableVue = new Vue({
+        el: "#field-table",
+        data: {
+          tiles: []
+        },
+        methods: {
+          init: function (game) {
+            let agents = new Array(game.board.width * game.board.height);
+            game.players.forEach((p, i) => {
+              p.agents.forEach(a => {
+                if (a.x >= 0 && a.y >= 0) {
+                  agents[a.x + a.y * game.board.width] = i;
+                }
+              });
+            });
+            this.tiles = new Array(game.board.width * game.board.height);
+            for (let x = 0; x < game.board.width; x++) {
+              for (let y = 0; y < game.board.height; y++) {
+                let t = {};
+                t.x = x;
+                t.y = y;
+                t.pos = `${(x - game.board.width / 2) * 0.25} 0 ${y * 0.25}`;
+                t.key = `${x},${y}`;
+                t.point = game.board.points[x + y * game.board.width];
+                t.coneVisible = false;
+                let gt = game.tiled[x + y * game.board.width];
+                if (gt[0] === 0 && gt[1] === 0) {
+                  t.color = "#80C9FF";
+                  t.pointColor = "gray";
+                } else if (gt[0] === 0 && gt[1] === 1) {
+                  t.color = "#FE9998";
+                  t.pointColor = "gray";
+                } else if (gt[0] === 1 && gt[1] === 0) {
+                  t.color = "#0096FF";
+                  t.pointColor = "white";
+                } else if (gt[0] === 1 && gt[1] === 1) {
+                  t.color = "#FF0200";
+                  t.pointColor = "white";
+                } else {
+                  t.color = "gray";
+                }
+                let pid = agents[x + y * game.board.width];
+                if (pid === undefined) {
+                  t.coneVisible = false;
+                } else {
+                  t.coneVisible = true;
+                  if (pid === 0) {
+                    t.coneColor = "royalblue";
+                  } else if (pid === 1) {
+                    t.coneColor = "hotpink";
+                  }
+                }
+                Vue.set(this.tiles, x + y * game.board.width, t);
+              }
+            }
+          }
+        }
+      });
+
+      const gameId = getUrlQueries().id;
+      game = testData;
+      console.log(game);
+      fieldTableVue.init(game);
+    </script>
+  </body>
+</html>
