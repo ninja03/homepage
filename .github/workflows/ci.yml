@@ -27,4 +27,5 @@ jobs:
         uses: denoland/deployctl@v1
         with:
           project: ninja03
+          import-map: "./deno.json"
           entrypoint: serve.ts
